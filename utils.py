@@ -3,6 +3,7 @@ import imageio
 import matplotlib.pyplot as plt
 from scipy.constants import mu_0
 from tqdm import tqdm
+from sklearn.neural_network import BernoulliRBM
 
 # Classes that contain internal properties of the given Ising model
 # Class for 1D Ising Model
@@ -136,15 +137,50 @@ class IsingModel2D(IsingModel1D):
       imageio.mimwrite('animated_from_images.gif', image_list)
 
 # My own class representation of a deep belief network
+# Got some ideas from https://github.com/2015xli/DBN
 class DBN:
-  def __init__(self, n_rbms, n_components, learning_rates, n_iter=100, batch_size=50):
-    self.rbms = [BernoulliRBM(n_components=n,learning_rate=lr,n_iter=n_iter, batch_size=batch_size) \
-            for n,lr in zip(n_components,learning_rates)] # initializing RBMs
+  # Initializing RBMs that constitute DBN
+  def __init__(self, n_rbms, n_components, learning_rates, n_iter=100, batch_size=10):
+    self.rbms = [BernoulliRBM(n_components=n,learning_rate=lr,n_iter=n_iter, batch_size=batch_size) for n,lr in zip(n_components,learning_rates)] # initializing RBMs
     self.n_rbms = n_rbms
     self.n_components = n_components
-  def fit(self, X):
-    self.data = X
-    rbm_input = X
+  # Single backward step for H of a given RBM (row vectors)
+  def rbm_backward(self, H, rbm):
+    signal = rbm.intercept_visible_.reshape((1, len(rbm.intercept_visible_))) + np.matmul(H,rbm.components_)
+    Vp = (1 + np.exp(-signal))**-1
+    return np.random.binomial(n=1, p=Vp, size=Vp.shape) # sampled components of the previous layer
+  # Network forwarding through each RBM
+  def forward(self, V):
+    # Make visible unit the 'previous hidden unit' samples
+    Hs = V.copy()
     for i in range(self.n_rbms):
-      self.rbms[i].fit(rbm_input) # training the given RBM
-      rbm_input = self.rbms[i].h_samples_ # making the input to the next RBM the samples from the given RBM
+      Hp = self.rbms[i].transform(Hs) # get probability distribution over hidden units
+      Hs = np.random.binomial(n=1, p=Hp, size=Hp.shape)
+    return Hp, Hs # return outputs and probabilities of all hidden layers
+  # Network sending signal backwards through each RBM
+  def backward(self, H):
+    Hs = H
+    for i in reversed(range(self.n_rbms)): # iteratively sample backwards until visible units
+      Hs = self.rbm_backward(Hs, self.rbms[i])
+    return Hs
+  # One step forward for a given input, then backward to obtain the corresponding reconstruction
+  def reconstruct(self, V):
+    if V.ndim == 1: # make 1dim arrays 2d
+      V = V.reshape(1,len(V))
+    _,Hs = self.forward(V)
+    V_reconstruct = self.backward(Hs)
+    return V_reconstruct
+  # Training all constituents RBMs
+  def fit(self, X):
+    print('Training DBN Layers ... \n')
+    # Make visible unit the 'previous hidden unit' samples
+    Hs = X.copy()
+    for i in tqdm(range(self.n_rbms)):
+      self.rbms[i].fit(Hs)
+      Hp = self.rbms[i].transform(Hs) # get probability distribution over hidden units
+      Hs = np.random.binomial(n=1, p=Hp, size=Hp.shape) # get sampled hidden units
+  def get_weights(self): # return a list of weight matrices for each RBM
+    Ws = []
+    for i in range(self.n_rbms):
+      Ws.append(self.rbms[i].components_)
+    return Ws
