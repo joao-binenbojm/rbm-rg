@@ -8,4 +8,4 @@ All the relevant classes  (RBMs, DBNs, IsingModels) and functions (used to proce
 All the new models (trained with the class DBN2) are present in the final_models folder, containing different training iterations and hyperparamters. The best models were determine to be model4.p with 800 epochs and model3.p from the regularized models.
 
 ## Data
-Data is available for the Ising model in 1D for different coupling parameters, and for the 2D model for lattices of 64x64 (main set simulated and contains up to 80k samples), 128x128, 256x256, and 1024x1024. Due to the large number of spins, simulation burn-ins selected were not enough for the 1024x1024 lattice to reach equilibrium configurations.
+Data is available for the Ising model in 1D for different coupling parameters, and for the 2D model for lattices of 64x64 (main set simulated and contains up to 80k samples) and for 128x128. Larger datasets were not uploadable to GitHub.
