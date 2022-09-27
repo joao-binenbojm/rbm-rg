@@ -1,5 +1,5 @@
 # rbm-rg
-This repository will be used for all algorithm development, simulations and exploration required for my final year project: "A Mapping Between The Variational Renormalization Group and Deep Learning". This will include the exploration of RBMs/DBNs/DBMs models, MC simulations of the Ising Model, training on simulated data and carrying out statistical analysis on the results obtained.
+This repository will be used for all algorithm development, simulations and exploration required for my final year project: "A Mapping Between The Variational Renormalization Group and Deep Learning". In this particular analysis, I looked into a previously made comparison between Renormalization Group (RG) analysis of the 2D Ising model and the patterns learned by deep belief networks trained on Ising model simulated data. This will include the exploration of restricted Boltzmann machines (RBMs), deep Boltzmann machines (DBMs), deep belief networks (DBNs), Monte Carlo (MC) simulations of the Ising Model, training on simulated data and carrying out statistical analysis on the results obtained.
 
 ## Models, Simulations & Functions
 All the relevant classes  (RBMs, DBNs, IsingModels) and functions (used to process data and in quantitative methods) are given in the utils.py file. All other scripts import this file and carry out tasks accordingly.
